@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="pt-br">
   <head>
-    <title>Title</title>
+    <title>Cadastro de Produtos</title>
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -12,6 +12,15 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.4.2/css/buttons.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/select/1.2.3/css/select.dataTables.min.css">
+    <link rel="stylesheet" href="stylo.css">
+    
+    <!--style para desacar coluna-->
+    <style>
+        .highlight{
+           color: brown;
+           font-weight: bold;
+        }
+    </style>
 
   </head>
   <body>
@@ -20,8 +29,10 @@
        <div class="container">
            <div class="col-md-12">
               <h1>Exemplos datatables</h1>
-              <div class="well">
 
+
+
+              <div class="well">
                   <table class="table" id="user-table">
                     <thead>
                         <tr>
@@ -36,6 +47,15 @@
 
                <div class="well">
 
+                  <!--
+                   <div class="text-center">
+                       <a class="toggle-vis btn btn-sm btn-info" data-column="0">Id</a>
+                       <a class="toggle-vis btn btn-sm btn-info" data-column="1">Nome</a>
+                       <a class="toggle-vis btn btn-sm btn-info" data-column="2">Preço</a>
+                   </div>
+                    -->
+
+        
                   <table class="table" id="produto-table">
                     <thead>
                         <tr>
@@ -61,7 +81,17 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js"></script>
         <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
 
-      <script>
+        <script src="//cdn.datatables.net/buttons/1.4.2/js/dataTables.buttons.min.js"></script>
+        <script src="//cdn.datatables.net/buttons/1.4.2/js/buttons.flash.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+        <script src=" //cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js"></script>
+        <script src="//cdn.datatables.net/buttons/1.4.2/js/buttons.html5.min.js"></script>
+        <script src=" //cdn.datatables.net/buttons/1.4.2/js/buttons.print.min.js"></script>
+        <script src="https://cdn.datatables.net/select/1.2.3/js/dataTables.select.min.js"></script>
+
+
+     <script>
          jQuery(document).ready(function($){
 
            $.extend(true, $.fn.dataTable.defaults, {
@@ -71,23 +101,43 @@
                searching:true,
                //traduzir 
                language:{
-                  url:"//cdn.datatables.net/plug-ins/1.10.19/i18n/Portuguese-Brasil.json"
+                  url:"//cdn.datatables.net/plug-ins/1.10.19/i18n/Portuguese-Brasil.json",
+                  //tradução das linhas e colunas
+                  select: {
+                        rows:"%d linhas selecionadas",
+                        columns:"%d colunas selecionadas"
+                    }
                },
                //personalizar o mostrador de páginas
                lengthMenu:[
                    [10,20,50,100,500,-1],[10,20,50,500,'Todos']
-               ]
+               ],
+              
+              //Imprimir e exportar dados da tabela para Excel, Pdf, Csv
+              "sDom": "<'row'><'row'<'col-md-6'l><'col-md-6'f>r>t<'row'<'col-md-4'i>><'row'p>B",
+               buttons:[
+                  // {extend:'copy',text:'Copiar para Área de transferência'},
+                   {extend:'excel',text:'Copiar para Excel'},
+                   {extend:'csv',text:'Copiar para CSV'},
+                   {extend:'pdf',text:'Copiar para PDF'},
+                   {extend:'print',text:'Enviar para Impressão'},
+                   {extend:'selectRows',text:'Selecionar linha'},
+                   {extend:'selectColumns',text:'Selecionar Coluna'}
+ 
+               ],
+               select:true
+
            });  
 
            $("#user-table").DataTable({
                //guardar o status atual do grid
-               stateSave:false,
+              // stateSave:false,
                //controlar o tamanho da table
               // scrollY: "30vh",
                columns:[
-                 {registro:"id", data:"id"},
-                 {registro:"nome", data:"nome"},
-                 {registro:"email", data:"email"}
+                 {Dados:"id", data:"id"},
+                 {Dados:"nome", data:"nome"},
+                 {Dados:"email", data:"email"}
                ],
                //funcionalidades
                columnDefs:[
@@ -101,16 +151,18 @@
                ajax:{
                    url:"http://localhost/TrabalhandoComDatatables/dados/usuario.json"
                }
-
            });  
+
+
+        
 
 
            $("#produto-table").DataTable({
 
                columns:[
-                 {registro:"id", data:"id"},
-                 {registro:"nome", data:"nome"},
-                 {registro:"preco", data:"preco"}
+                 {Dados:"id", data:"id"},
+                 {Dados:"nome", data:"nome"},
+                 {Dados:"preco", data:"preco"}
                ],
 
                columnDefs:[
@@ -149,8 +201,27 @@
                        `Total Página: R$ ${totalPage.toFixed(2)} ( Total Geral: R$ ${total.toFixed(2)})`
                    )      
 
-               }
+               },
+                 //destacar uma coluna no grid
+               createdRow:function(row,data,index){
+                  /*
+                  if(data.preco.replace(/[\R$]/g,'').replace(/,/g,'.') * 1 ) {
+                      $("td", row).eq(2).addClass("highlight");
+                  }*/
+                  if(data.preco.replace(/[\R$]/g,'').replace(/,/g,'.') * 1 > 500 ) {
+                      $("td", row).eq(2).addClass("highlight");
+                  }
+               },
 
+             /*  //buscar quando selecionar conteúdo coluna
+               initComplete: function(){
+                   var api = this.api();
+                   api.$('td').click(function(){
+                       api.search(this.innerHTML).draw()
+                   })
+               }
+*/
+              
            }); 
 
 
