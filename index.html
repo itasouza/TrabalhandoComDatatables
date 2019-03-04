@@ -20,6 +20,14 @@
            color: brown;
            font-weight: bold;
         }
+       td.details-control {
+            background: url('imgs/details_open.png') no-repeat center center;
+            cursor: pointer;
+        }
+
+        tr.shown td.details-control {
+            background: url('imgs/details_close.png') no-repeat center center;
+        }
     </style>
 
   </head>
@@ -47,18 +55,10 @@
 
                <div class="well">
 
-                  <!--
-                   <div class="text-center">
-                       <a class="toggle-vis btn btn-sm btn-info" data-column="0">Id</a>
-                       <a class="toggle-vis btn btn-sm btn-info" data-column="1">Nome</a>
-                       <a class="toggle-vis btn btn-sm btn-info" data-column="2">Preço</a>
-                   </div>
-                    -->
-
-        
                   <table class="table" id="produto-table">
                     <thead>
                         <tr>
+                            <th></th>
                             <th>ID</th>
                             <th>Nome</th>
                             <th>Preço</th>
@@ -66,7 +66,7 @@
                     </thead>
                     <tfoot>
                         <tr>
-                            <th colspan="3" style="text-align: right">Total</th>
+                            <th colspan="4" style="text-align: right">Total</th>
                         </tr>
                     </tfoot>
                 </table>
@@ -153,22 +153,37 @@
                }
            });  
 
+           //função para adicionar dados 
+           function format(d){
+               return `
+                 <table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;">
+                   <tr>
+                     <td>Descrição</td>
+                     <td>${d.descricao}</td>
+                   </tr>
+                 </table>
+               `;
+           }
 
-        
 
-
-           $("#produto-table").DataTable({
+          const tabelaProduto =  $("#produto-table").DataTable({
 
                columns:[
+                  {
+                    "className": 'details-control',
+                    "orderable": false,
+                    "data": null,
+                    "defaultContent": ''
+                  },
                  {Dados:"id", data:"id"},
                  {Dados:"nome", data:"nome"},
                  {Dados:"preco", data:"preco"}
                ],
 
                columnDefs:[
-                   {targets:[0], orderData:[0,1]},
                    {targets:[1], orderData:[1,2]},
-                   {targets:[2], orderData:[2,1]}
+                   {targets:[2], orderData:[2,3]},
+                   {targets:[3], orderData:[3,1]}
                ],
                ajax:{
                    url:"http://localhost/TrabalhandoComDatatables/dados/produto.json"
@@ -184,21 +199,21 @@
                    }
                   
                    var total = api
-                         .column(2)
+                         .column(3)
                          .data()
                          .reduce(function(a,b){
                              return intVal(a) + intVal(b);
                          },0)
 
                   var totalPage = api
-                         .column(2,{page:'current'})
+                         .column(3,{page:'current'})
                          .data()
                          .reduce(function(a,b){
                              return intVal(a) + intVal(b);
                          },0)
 
-                   $(api.column(2).footer()).html(
-                       `Total Página: R$ ${totalPage.toFixed(2)} ( Total Geral: R$ ${total.toFixed(2)})`
+                   $(api.column(3).footer()).html(
+                       `Total Página: R$ ${totalPage.toFixed(3)} ( Total Geral: R$ ${total.toFixed(3)})`
                    )      
 
                },
@@ -206,10 +221,10 @@
                createdRow:function(row,data,index){
                   /*
                   if(data.preco.replace(/[\R$]/g,'').replace(/,/g,'.') * 1 ) {
-                      $("td", row).eq(2).addClass("highlight");
+                      $("td", row).eq(3).addClass("highlight");
                   }*/
-                  if(data.preco.replace(/[\R$]/g,'').replace(/,/g,'.') * 1 > 500 ) {
-                      $("td", row).eq(2).addClass("highlight");
+                  if(data.preco.replace(/[\R$]/g,'').replace(/,/g,'.') * 1 > 0 ) {
+                      $("td", row).eq(3).addClass("highlight");
                   }
                },
 
@@ -223,7 +238,19 @@
 */
               
            }); 
+            
+           $('#produto-table tbody').on('click', 'td.details-control', function(){
+               let tr = $(this).closest('tr');
+               let row = tabelaProduto.row(tr);
 
+               if(row.child.isShown()){
+                   row.child.hide();
+                   tr.removeClass('shown');
+               }else{
+                   row.child(format(row.data())).show();
+                   tr.addClass('shown');
+               }
+           }) 
 
          })
       </script>
